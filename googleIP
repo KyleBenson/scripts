@@ -1,0 +1,107 @@
+#!/usr/bin/python
+#
+#
+#  1) Install the google documents python api
+#  2) Create a spreadsheet in google documents and save it under a name
+#     that matches SPREADSHEET_NAME
+#  3) Name the column headings of the google spreadsheet 'ip','date','time'
+#  4) Edit USERNAME and PASSWD to match your login info
+#  5) Make this file executable
+#  6) In a terminal window, type 'crontab -e' and add this script to your
+#  user's crontab. ex. 56 * * * * /usr/bin/python /path_to_your_script/googleIP.py
+#
+
+import os
+
+## Change These to Match Your Info!
+
+SPREADSHEET_NAME = 'IP_addresses' # google documents spreadsheet name
+USER_INFO_FILE = '/root/.google_user_info'#/root/.google_user_info' # google login info
+with open(USER_INFO_FILE) as f:
+     info = f.readlines()
+     USERNAME, PASSWD = info[0].strip(), info[1].strip() 
+#USERNAME = 'kebenson@uci.edu' # google/gmail login id
+#PASSWD = 'your_password_here' # google/gmail login password
+BASE_DIR = '/tmp/' # Base Directory to locally save your IP info
+                   # trailing slash required!
+IP_WEBSITE = 'http://myip.xname.org/'
+#IP_WEBSITE = 'whatismyip.everdot.org/ip' # alternate website
+
+## Function Definitions
+
+def StringToDictionary(row_data):
+  result = {}
+  for param in row_data.split():
+    name, value = param.split('=')
+    result[name] = value
+  return result
+
+def load():
+  import gdata.spreadsheet.service
+  gd_client = gdata.spreadsheet.service.SpreadsheetsService()
+  gd_client.email = USERNAME
+  gd_client.password = PASSWD
+  gd_client.ProgrammaticLogin()
+  return gd_client
+
+def updateIP(ip):
+  import time,string, socket
+  hostname = socket.gethostname()
+  gd_client = load()
+  docs= gd_client.GetSpreadsheetsFeed()
+  spreads = []
+
+  #Get correct spreadsheet
+  for i in docs.entry: spreads.append(i.title.text)
+  spread_number = None
+  for i,j in enumerate(spreads):
+    if j == SPREADSHEET_NAME: spread_number = i
+  if spread_number == None:
+    return 0
+
+  #Get correct worksheet feed
+  key = docs.entry[spread_number].id.text.rsplit('/', 1)[1]
+  feed = gd_client.GetWorksheetsFeed(key)
+  wksht_id = feed.entry[0].id.text.rsplit('/', 1)[1]
+  feed = gd_client.GetListFeed(key,wksht_id)
+
+  #Get correct row (if it exists)
+  row_index = None
+  for i,entry in enumerate(feed.entry):
+       if entry.custom['host'].text == hostname:
+            row_index = i
+  
+  #Write data
+  thetime = time.strftime('%I:%M%p')
+  thedate = time.strftime('%m/%d/%y')
+  row_data = StringToDictionary('host='+hostname+' date='+thedate+' time='+thetime+' ip='+ip)
+  if row_index is None:
+       entry = gd_client.InsertRow(row_data,key,wksht_id)
+  else:
+       entry = gd_client.UpdateRow(feed.entry[row_index],row_data)
+  return 1
+
+
+## Executed Code
+
+if os.path.exists(BASE_DIR+'CheckIP'): os.remove(BASE_DIR+'CheckIP')
+os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+BASE_DIR+'CheckIP')
+fh2 = open(BASE_DIR+'CheckIP','r')
+ip2 = fh2.read()
+fh2.close()
+
+if os.path.exists(BASE_DIR+'CurrentIP'):
+  fh1 = open(BASE_DIR+'CurrentIP','r')
+  ip1 = fh1.read()
+  fh1.close()
+else:
+  ip1 = ''
+
+if ip1 == ip2: pass
+else:
+  res = updateIP(ip2)
+  if res == 0: raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
+  else:
+    fh = open(BASE_DIR+'CurrentIP','w')
+    fh.write(ip2)
+    fh.close()
