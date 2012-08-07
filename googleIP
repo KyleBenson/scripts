@@ -12,6 +12,7 @@
 #
 
 import os
+from time import strptime
 
 ## Change These to Match Your Info!
 
@@ -27,14 +28,19 @@ BASE_DIR = '/tmp/' # Base Directory to locally save your IP info
 IP_WEBSITE = 'http://myip.xname.org/'
 #IP_WEBSITE = 'whatismyip.everdot.org/ip' # alternate website
 
+# Time formats
+date_format = '%m/%d/%Y'
+time_format = '%H:%M:%S %Z'
+
+param_delimeter = '$'
 ## Function Definitions
 
 def StringToDictionary(row_data):
-  result = {}
-  for param in row_data.split():
-    name, value = param.split('=')
-    result[name] = value
-  return result
+     result = {}
+     for param in row_data.split(param_delimeter):
+          name, value = param.split('=')
+          result[name] = value
+     return result
 
 def load():
   import gdata.spreadsheet.service
@@ -44,12 +50,43 @@ def load():
   gd_client.ProgrammaticLogin()
   return gd_client
 
-def updateIP(ip):
+def rowToHostsFormat(row):
+     return '\t'.join([row.custom['ip'].text, row.custom['host'].text + '\n'])
+
+def updateEtcHosts(fresh_ips):
+     if not fresh_ips: return
+     from string import whitespace
+
+     lines = []
+     with open('/etc/hosts', 'r') as hosts:
+          for line in hosts.readlines():
+               for i,row in enumerate(fresh_ips):
+                    if row.custom['host'].text in line:
+                         lines.append(rowToHostsFormat(row))
+                         del fresh_ips[i]
+                         break
+
+               else:
+                    # add any NEW hosts not previously stored to hosts before the blank line that MUST be present
+                    if line in whitespace:
+                         for next_ip in fresh_ips:
+                              lines.append(rowToHostsFormat(next_ip))
+                         fresh_ips = []
+                         lines.append(line)
+
+                    else: lines.append(line)
+
+     with open('/etc/hosts', 'w') as hosts:
+          for line in lines:
+               hosts.write(line)
+
+def updateIP(ip,last_update_time):
   import time,string, socket
   hostname = socket.gethostname()
   gd_client = load()
   docs= gd_client.GetSpreadsheetsFeed()
   spreads = []
+  fresh_ips = []
 
   #Get correct spreadsheet
   for i in docs.entry: spreads.append(i.title.text)
@@ -65,43 +102,61 @@ def updateIP(ip):
   wksht_id = feed.entry[0].id.text.rsplit('/', 1)[1]
   feed = gd_client.GetListFeed(key,wksht_id)
 
-  #Get correct row (if it exists)
+  #Get correct row (if it exists) AND build a list of newly updated IPs to return for updating /etc/hosts
   row_index = None
   for i,entry in enumerate(feed.entry):
        if entry.custom['host'].text == hostname:
             row_index = i
-  
+       
+       else:
+            this_update_time = time.mktime( strptime(entry.custom['date'].text + ' ' + entry.custom['time'].text, date_format + ' ' + time_format))
+            #print time.strftime(date_format + ' ' + time_format,time.localtime(this_update_time))
+            #print time.strftime(date_format + ' ' + time_format,time.localtime(last_update_time))
+            if this_update_time  >= last_update_time:
+                 fresh_ips.append(entry)
+               
   #Write data
-  thetime = time.strftime('%I:%M%p')
-  thedate = time.strftime('%m/%d/%y')
-  row_data = StringToDictionary('host='+hostname+' date='+thedate+' time='+thetime+' ip='+ip)
+  thetime = time.strftime(time_format)
+  thedate = time.strftime(date_format)
+  row_data = StringToDictionary(param_delimeter.join(['host='+hostname, 'date='+thedate, 'time='+thetime, 'ip='+ip]))
   if row_index is None:
        entry = gd_client.InsertRow(row_data,key,wksht_id)
   else:
        entry = gd_client.UpdateRow(feed.entry[row_index],row_data)
-  return 1
+  return 1, fresh_ips
 
 
 ## Executed Code
 
-if os.path.exists(BASE_DIR+'CheckIP'): os.remove(BASE_DIR+'CheckIP')
-os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+BASE_DIR+'CheckIP')
-fh2 = open(BASE_DIR+'CheckIP','r')
+# Get IP from external website and update the file accordingly
+path = BASE_DIR+'CheckIP'
+if os.path.exists(path):
+     last_update_time = os.path.getmtime(path)
+     os.remove(path)
+else: last_update_time = 0.0 if os.stat_float_times() else 0
+os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+path)
+fh2 = open(path,'r')
 ip2 = fh2.read()
 fh2.close()
 
-if os.path.exists(BASE_DIR+'CurrentIP'):
-  fh1 = open(BASE_DIR+'CurrentIP','r')
+# Read in previous IP (if it exists)
+path = BASE_DIR+'CurrentIP'
+if os.path.exists(path):
+  fh1 = open(path,'r')
   ip1 = fh1.read()
   fh1.close()
 else:
   ip1 = ''
 
-if ip1 == ip2: pass
+#if ip1 == ip2: pass
+#
+# We always want to run updateIP because it will build a list of freshly updated other IPs for updating /etc/hosts
+res, fresh_ips = updateIP(ip2, last_update_time)
+if res == 0:
+     raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
 else:
-  res = updateIP(ip2)
-  if res == 0: raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
-  else:
-    fh = open(BASE_DIR+'CurrentIP','w')
-    fh.write(ip2)
-    fh.close()
+     if ip1 != ip2:
+          fh = open(path,'w')
+          fh.write(ip2)
+          fh.close()
+     updateEtcHosts(fresh_ips)
