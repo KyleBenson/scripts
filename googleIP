@@ -17,11 +17,16 @@ from time import strptime
 ## Change These to Match Your Info!
 
 SPREADSHEET_NAME = 'IP_addresses' # google documents spreadsheet name
-USER_INFO_FILE = '/root/.google_user_info'#/root/.google_user_info' # google login info
+
+# google login info looks just like (without the #s):
+#gmail_address@gmail.com
+#super_secret_password
+
+USER_INFO_FILE = '/root/.google_user_info'
 with open(USER_INFO_FILE) as f:
      info = f.readlines()
      USERNAME, PASSWD = info[0].strip(), info[1].strip() 
-#USERNAME = 'kebenson@uci.edu' # google/gmail login id
+#USERNAME = 'your_handle@site.domain' # google/gmail login id
 #PASSWD = 'your_password_here' # google/gmail login password
 BASE_DIR = '/tmp/' # Base Directory to locally save your IP info
                    # trailing slash required!
@@ -51,7 +56,7 @@ def load():
   return gd_client
 
 def rowToHostsFormat(row):
-     return '\t'.join([row.custom['ip'].text, row.custom['host'].text + '\n'])
+     return '\t'.join([row.custom['ip'].text.trim(), row.custom['host'].text.trim() + '\n'])
 
 def updateEtcHosts(fresh_ips):
      if not fresh_ips: return
