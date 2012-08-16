@@ -56,7 +56,7 @@ def load():
   return gd_client
 
 def rowToHostsFormat(row):
-     return '\t'.join([row.custom['ip'].text.trim(), row.custom['host'].text.trim() + '\n'])
+     return '\t'.join([row.custom['ip'].text.strip(), row.custom['host'].text.strip() + '\n'])
 
 def updateEtcHosts(fresh_ips):
      if not fresh_ips: return
