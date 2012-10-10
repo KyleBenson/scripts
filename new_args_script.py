@@ -2,10 +2,13 @@
 NEW_SCRIPT_DESCRIPTION = '''Description that will appear when help is printed.'''
 
 # @author: Kyle Benson
+# (c) Kyle Benson 2012
 
 import argparse
 #from os.path import isdir
 #from os import listdir
+#from getpass import getpass
+#password = getpass('Enter password: ')
 
 def ParseArgs():
 ##################################################################################
@@ -28,4 +31,9 @@ def ParseArgs():
 
 # Main
 if __name__ == "__main__":
+    
+    import sys
+
+    args = ParseArgs(sys.argv)
+
     

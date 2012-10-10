@@ -11,34 +11,54 @@
 #  user's crontab. ex. 56 * * * * /usr/bin/python /path_to_your_script/googleIP.py
 #
 
-import os
+import os, time,string, socket
 from time import strptime
+from future import print_function
+
 
 ## Change These to Match Your Info!
 
 SPREADSHEET_NAME = 'IP_addresses' # google documents spreadsheet name
 
-# google login info looks just like (without the #s):
-#gmail_address@gmail.com
-#super_secret_password
-
-USER_INFO_FILE = '/root/.google_user_info'
-with open(USER_INFO_FILE) as f:
-     info = f.readlines()
-     USERNAME, PASSWD = info[0].strip(), info[1].strip() 
+# Uncomment these variables
 #USERNAME = 'your_handle@site.domain' # google/gmail login id
 #PASSWD = 'your_password_here' # google/gmail login password
+
+# -|- OR -|- #
+
+# Put it in a hidden root-only, preferably encrypted, folder
+# google login info looks just like (without the #s):
+#gmail_address[@google_apps_domain.edu]
+#super_secret_password
+USER_INFO_FILE = '/root/.google_user_info'
+
+try with open(USER_INFO_FILE) as f:
+     info = f.readlines()
+     USERNAME, PASSWD = info[0].strip(), info[1].strip() 
+except e:
+     print(e)
+     print(USER_INFO_FILE + '''USER_INFO_FILE not found''')
+     USERNAME = raw_input('''\nUsername? (say quit to do so)')''')
+     if USERNAME = 'quit':
+          exit(0)
+     
+
 BASE_DIR = '/tmp/' # Base Directory to locally save your IP info
                    # trailing slash required!
 IP_WEBSITE = 'http://myip.xname.org/'
-#IP_WEBSITE = 'whatismyip.everdot.org/ip' # alternate website
+#IP_WEBSITE = 'whatismyip.everdot.org/ip' # alternate website?
 
 # Time formats
 date_format = '%m/%d/%Y'
 time_format = '%H:%M:%S %Z'
 
 param_delimeter = '$'
-## Function Definitions
+
+
+#####################################################################
+######################   Function Definitions   #####################
+#####################################################################
+
 
 def StringToDictionary(row_data):
      result = {}
@@ -71,7 +91,7 @@ def updateEtcHosts(fresh_ips):
                          del fresh_ips[i]
                          break
 
-               else:
+               else: #
                     # add any NEW hosts not previously stored to hosts before the blank line that MUST be present
                     if line in whitespace:
                          for next_ip in fresh_ips:
@@ -86,7 +106,6 @@ def updateEtcHosts(fresh_ips):
                hosts.write(line)
 
 def updateIP(ip,last_update_time):
-  import time,string, socket
   hostname = socket.gethostname()
   gd_client = load()
   docs= gd_client.GetSpreadsheetsFeed()
@@ -97,9 +116,9 @@ def updateIP(ip,last_update_time):
   for i in docs.entry: spreads.append(i.title.text)
   spread_number = None
   for i,j in enumerate(spreads):
-    if j == SPREADSHEET_NAME: spread_number = i
-  if spread_number == None:
-    return 0
+    if j == SPREADSHEET_NAME: spread_number = i; break
+  else:
+    return None
 
   #Get correct worksheet feed
   key = docs.entry[spread_number].id.text.rsplit('/', 1)[1]
@@ -133,35 +152,38 @@ def updateIP(ip,last_update_time):
 
 ## Executed Code
 
-# Get IP from external website and update the file accordingly
-path = BASE_DIR+'CheckIP'
-if os.path.exists(path):
-     last_update_time = os.path.getmtime(path)
-     os.remove(path)
-else: last_update_time = 0.0 if os.stat_float_times() else 0
-os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+path)
-fh2 = open(path,'r')
-ip2 = fh2.read()
-fh2.close()
+if __name__ == "__main__":
 
-# Read in previous IP (if it exists)
-path = BASE_DIR+'CurrentIP'
-if os.path.exists(path):
-  fh1 = open(path,'r')
-  ip1 = fh1.read()
-  fh1.close()
-else:
-  ip1 = ''
+     # Get IP from external website and update the file accordingly
+     path = BASE_DIR+'CheckIP'
+     if os.path.exists(path):
+          last_update_time = os.path.getmtime(path)
+          os.remove(path)
+     else: last_update_time = 0.0 if os.stat_float_times() else 0
 
-#if ip1 == ip2: pass
-#
-# We always want to run updateIP because it will build a list of freshly updated other IPs for updating /etc/hosts
-res, fresh_ips = updateIP(ip2, last_update_time)
-if res == 0:
-     raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
-else:
-     if ip1 != ip2:
-          fh = open(path,'w')
-          fh.write(ip2)
-          fh.close()
-     updateEtcHosts(fresh_ips)
+     os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+path)
+     fh2 = open(path,'r')
+     ip2 = fh2.read()
+     fh2.close()
+
+     # Read in previous IP (if it exists)
+     path = BASE_DIR+'CurrentIP'
+     if os.path.exists(path):
+       fh1 = open(path,'r')
+       ip1 = fh1.read()
+       fh1.close()
+     else:
+       ip1 = ''
+
+     #if ip1 == ip2: pass
+     #
+     # We always want to run updateIP because it will build a list of freshly updated other IPs for updating /etc/hosts
+     res, fresh_ips = updateIP(ip2, last_update_time)
+     if res == 0:
+          raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
+     else:
+          if ip1 != ip2:
+               fh = open(path,'w')
+               fh.write(ip2)
+               fh.close()
+          updateEtcHosts(fresh_ips)
