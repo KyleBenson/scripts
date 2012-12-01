@@ -80,7 +80,8 @@ def load():
   return gd_client
 
 def rowToHostsFormat(row):
-     return '\t'.join([row.custom['ip'].text.strip(), row.custom['host'].text.strip() + '\n'])
+     return '\t'.join([row.custom['ip'].text.strip(),
+                       row.custom['host'].text.strip()]) + '\n'
 
 def updateEtcHosts(fresh_ips):
      if not fresh_ips: return
@@ -109,7 +110,7 @@ def updateEtcHosts(fresh_ips):
           for line in lines:
                hosts.write(line)
 
-def updateIP(ip,last_update_time):
+def updateIP(ip, last_update_time):
   hostname = socket.gethostname()
   gd_client = load()
   docs= gd_client.GetSpreadsheetsFeed()
@@ -154,40 +155,57 @@ def updateIP(ip,last_update_time):
   return 1, fresh_ips
 
 
-## Executed Code
-
-if __name__ == "__main__":
-
+def get_last_update_time():
+     
      # Get IP from external website and update the file accordingly
-     path = BASE_DIR+'CheckIP'
+     path = BASE_DIR + 'CheckIP'
      if os.path.exists(path):
           last_update_time = os.path.getmtime(path)
           os.remove(path)
      else: last_update_time = 0.0 if os.stat_float_times() else 0
+     return last_update_time
 
+
+def getnewip():
+     path = BASE_DIR + 'CheckIP'
      os.system('wget '+IP_WEBSITE+' -t 2 --output-document='+path)
      fh2 = open(path,'r')
-     ip2 = fh2.read()
+     ip = fh2.read()
      fh2.close()
+     return ip
 
+
+def getoldip():
      # Read in previous IP (if it exists)
-     path = BASE_DIR+'CurrentIP'
+     path = BASE_DIR + 'CurrentIP'
      if os.path.exists(path):
-       fh1 = open(path,'r')
-       ip1 = fh1.read()
-       fh1.close()
+          fh1 = open(path,'r')
+          ip = fh1.read()
+          fh1.close()
      else:
-       ip1 = ''
+          ip = ''
+     return ip
 
-     #if ip1 == ip2: pass
-     #
+
+def saveip(ip):
+     path = BASE_DIR + 'CurrentIP'
+     fh = open(path,'w')
+     fh.write(ip)
+     fh.close()
+
+## Executed Code
+
+if __name__ == "__main__":
+     last_update_time = get_last_update_time()
+     newip = getnewip()
+     oldip = getoldip()
+     
+     #if ip1 != ip2: pass
      # We always want to run updateIP because it will build a list of freshly updated other IPs for updating /etc/hosts
-     res, fresh_ips = updateIP(ip2, last_update_time)
+     res, fresh_ips = updateIP(newip, last_update_time)
      if res == 0:
           raise 'Please Create a Spreadsheet named \''+SPREADSHEET_NAME+'\' in googleDocs.'
      else:
-          if ip1 != ip2:
-               fh = open(path,'w')
-               fh.write(ip2)
-               fh.close()
+          if newip != oldip:
+               saveip(newip)
           updateEtcHosts(fresh_ips)
