@@ -25,6 +25,11 @@ main()  {
   printf("Main: shared_var=%d\n", shared_var);
 }
 
+// Note that these definitions MUST appear after main,
+// or the compiler will complain about the argument type being
+// int *x instead of a void *x.
+// We are tricking the compiler into thinking they're the
+// latter via the forward declarations in main.
 void *f1(int *x){
   printf("f1: PID=%d\n", getpid());
   (*x) = 1;
