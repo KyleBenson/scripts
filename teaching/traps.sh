@@ -12,6 +12,7 @@
 ## by William Shotts, Jr. (http://www.linuxcommand.org/wss0160.php)
 ## Adapted for the University of California, Irvine course
 ## CS 143A - Principles of Operating Systems
+## Winter 2013
 
 # Generate a random temporary filename so that users aren't overwriting each
 # others' 
