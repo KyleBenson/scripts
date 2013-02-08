@@ -4,9 +4,11 @@
  */
 
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 
 public class SynchronizationExample {
     static final int numThreads = 100;
+    private static final Semaphore semaphore = new Semaphore(1);
 
     public static class Counter {
 	private int count;
@@ -18,6 +20,8 @@ public class SynchronizationExample {
 	    this.count++;
 	}
 
+	//If we were accessing this from threads instead of main,
+	//we would want to synchronize it as well.
 	public int getCount(){
 	    return count;
 	}
@@ -39,8 +43,13 @@ public class SynchronizationExample {
 		System.out.println("Interrupted!");
 	    }
 
-	    synchronized (sharedVar) {
+	    try {
+		semaphore.acquire();
 		sharedVar.increment();
+	    }
+	    catch (InterruptedException e) {}
+	    finally {
+		semaphore.release();
 	    }
 	}
     }
