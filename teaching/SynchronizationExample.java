@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 
 public class SynchronizationExample {
     static final int numThreads = 100;
-    private static final Semaphore semaphore = new Semaphore(1);
+    private static final Semaphore semaphore = new Semaphore(1); //1 means mutex
 
     public static class Counter {
 	private int count;
@@ -43,6 +43,7 @@ public class SynchronizationExample {
 		System.out.println("Interrupted!");
 	    }
 
+	    //We need to make sure we release the semaphore (in the finally block) if one of the threads dies!
 	    try {
 		semaphore.acquire();
 		sharedVar.increment();
