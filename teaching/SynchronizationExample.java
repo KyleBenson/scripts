@@ -18,10 +18,6 @@ public class SynchronizationExample {
 	    this.count = this.count + 1;
 	}
 
-	public void add(int toAdd) {
-	    this.count += toAdd;
-	}
-
 	public int getCount(){
 	    return count;
 	}
@@ -56,9 +52,9 @@ public class SynchronizationExample {
 	}
 
 	for (Thread t : myThreads) {
-		t.start();
+	    t.start();
 	}
-
+	
 	for (Thread t : myThreads) {
 	    try {
 		t.join();
