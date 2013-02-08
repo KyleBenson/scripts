@@ -15,9 +15,7 @@ public class SynchronizationExample {
 	}
 
 	public void increment(){
-	    synchronized (this) {
-		this.count++;
-	    }
+	    this.count++;
 	}
 
 	public int getCount(){
@@ -41,7 +39,9 @@ public class SynchronizationExample {
 		System.out.println("Interrupted!");
 	    }
 
-	    sharedVar.increment();
+	    synchronized (sharedVar) {
+		sharedVar.increment();
+	    }
 	}
     }
 
