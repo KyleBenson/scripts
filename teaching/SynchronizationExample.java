@@ -15,7 +15,9 @@ public class SynchronizationExample {
 	}
 
 	public void increment(){
-	    this.count = this.count + 1;
+	    synchronized (this) {
+		this.count++;
+	    }
 	}
 
 	public int getCount(){
