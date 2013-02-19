@@ -1,11 +1,11 @@
 #! /usr/bin/python
+from __future__ import print_function
 NEW_SCRIPT_DESCRIPTION = '''Description that will appear when help is printed.'''
 
 # @author: Kyle Benson
 # (c) Kyle Benson 2012
 
 import argparse
-from future import print_function
 #from os.path import isdir
 #from os import listdir
 #from getpass import getpass
