@@ -1,7 +1,10 @@
-/** An example of synchronization in Java.
- * @author: Kyle Benson
- * WInter 2013
- */
+/** An example of synchronization in Java. I put comments in several places to illustrated the different possible ways of
+accomplishing synchronization.  Leave everything commented out to see how the value of the counter may not be as expected.
+
+@author: Kyle Benson
+Winter 2013
+CS 143A - Principles of Operating Systems
+*/
 
 import java.util.Vector;
 import java.util.concurrent.Semaphore;
@@ -16,8 +19,11 @@ public class SynchronizationExample {
 	    this.count = start;
 	}
 
-	public void increment(){
-	    this.count++;
+	//We can synchronize this function in several ways.
+	public /*synchronized*/ void increment(){
+	    //synchronized(this) {
+	    this.count++; //this operation is not atomic and can lead to corruption of this.count!
+	    //}
 	}
 
 	//If we were accessing this from threads instead of main,
@@ -44,14 +50,20 @@ public class SynchronizationExample {
 	    }
 
 	    //We need to make sure we release the semaphore (in the finally block) if one of the threads dies!
-	    try {
-		semaphore.acquire();
+	    /*try {
+	      semaphore.acquire();*/
 		sharedVar.increment();
-	    }
+		/*}
 	    catch (InterruptedException e) {}
 	    finally {
 		semaphore.release();
-	    }
+		}*/
+
+		//Alternatively, we can use a synchronized block here instead of handling synchronization in the counter or with a semaphore.
+
+		/*synchronized(this.sharedVar) {
+		    sharedVar.increment();
+		}*/
 	}
     }
 
@@ -59,6 +71,7 @@ public class SynchronizationExample {
 	Counter sharedVar = new Counter(0); //should be == numThreads when finished is synched properly.
 	Vector<Thread> myThreads = new Vector<Thread>();
 
+	//Create thread objects wrapping our class defined above
 	for (int i = 0; i < numThreads; i++) {
 	    myThreads.add(new Thread(new CountingThread(sharedVar)));
 	}
