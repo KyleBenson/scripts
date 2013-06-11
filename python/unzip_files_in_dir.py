@@ -15,8 +15,9 @@ def extract(target_dir):
             continue
 
         #do this first to get just UCINetID
-        #new_filename = f.split('_')[0] + '.' + f.split('.')[-1]
-        #rename(f, new_filename)
+        new_filename = f.split('_')[0] + '.' + f.split('.')[-1]
+        rename(f, new_filename)
+        f = new_filename
 
         if f.endswith('.zip'):
             command = 'unzip %s -d %s' % (f, f.split('.')[0])
