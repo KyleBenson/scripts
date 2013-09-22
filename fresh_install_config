@@ -12,3 +12,11 @@ sudo apt-get install texlive texlive-extra-utils texlive-latex-extra kile texliv
 
 # Random utils I like
 sudo apt-get install emacs git konsole gimp gparted
+
+# XMBC desktop media center install
+# http://wiki.xbmc.org/index.php?title=Installing_XBMC_for_Linux#Ubuntu
+sudo apt-get install python-software-properties pkg-config
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:team-xbmc/ppa
+sudo apt-get update
+sudo apt-get install xbmc
