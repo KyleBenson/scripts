@@ -8,7 +8,7 @@ apt-install python-scipy ipython python-matplotlib
 
 # LaTeX stuff
 # okular works well for viewing PDFs through kile
-apt-install texlive texlive-extra-utils texlive-latex-extra kile texlive-publishers texstudio okular
+apt-install texlive texlive-extra-utils texlive-latex-extra kile texlive-publishers texstudio okular texlive-fonts-extra
 
 # Random utils I like
 apt-install emacs git konsole gimp gparted
