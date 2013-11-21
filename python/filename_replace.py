@@ -1,4 +1,6 @@
 #!/usr/bin/python
+from __future__ import print_function
+
 usage = '''
 Usage: filename_replace.py from to [dir]
 Walks through the possibly specified directory ($PWD by default), dir, recursively and replaces occurrences of 'from' in the filenames with the string 'to'.
@@ -17,12 +19,12 @@ def rename_files(from_pattern, to_pattern, path_to_walk):
                 os.rename(os.path.join(root, f), newname)
                 
                 if not os.path.exists(newname):
-                    print 'error renaming file!'
+                    print('error renaming file!')
             
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print 'Not enough arguments!\n%s' % usage
+        print('Not enough arguments!\n%s' % usage)
     elif len(sys.argv) > 3:
         rename_files(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
