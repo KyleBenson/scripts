@@ -1,5 +1,5 @@
 import os, sys
-
+from __future__ import print_function
 '''
 A script for getting rid of those annoying renamed files Ubuntu One creates when it thinks there was a conflict...
 '''

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+from __future__ import print_function
 from os import *
 import sys
 import subprocess
@@ -21,7 +21,7 @@ def extract(target_dir):
 
         if f.endswith('.zip'):
             command = 'unzip %s -d %s' % (f, f.split('.')[0])
-            print command
+            print(command)
             subprocess.call(command, shell=True)
 
 extract('sources')
