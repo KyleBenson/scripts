@@ -15,7 +15,7 @@ sudo apt-get install -y python-scipy ipython python-matplotlib
 sudo apt-get install -y texlive texlive-extra-utils texlive-latex-extra kile texlive-publishers texstudio okular texlive-fonts-extra
 
 # Random utils I like
-sudo apt-get install -y emacs git konsole gimp gparted
+sudo apt-get install -y emacs git konsole gimp gparted vim
 
 # XMBC desktop media center install
 # http://wiki.xbmc.org/index.php?title=Installing_XBMC_for_Linux#Ubuntu
