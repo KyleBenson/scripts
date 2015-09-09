@@ -20,6 +20,7 @@ function child {
 # Executed when Ctrl-C is pressed
 function cleanup {
     echo parent killed. stopping child
+    # $! gets the PID of the last process we ran in the background
     kill -9 $!
     exit
 }
