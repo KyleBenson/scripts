@@ -11,7 +11,7 @@ import argparse
 #from getpass import getpass
 #password = getpass('Enter password: ')
 
-def ParseArgs():
+def parse_args(args):
 ##################################################################################
 #################      ARGUMENTS       ###########################################
 # ArgumentParser.add_argument(name or flags...[, action][, nargs][, const][, default][, type][, choices][, required][, help][, metavar][, dest])
@@ -28,13 +28,13 @@ def ParseArgs():
     parser.add_argument('--files', '-f', type=str, nargs='+',
                         help='''files from which to read trace data''')
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 # Main
 if __name__ == "__main__":
-    
+
     import sys
 
-    args = ParseArgs(sys.argv)
+    args = parse_args(sys.argv[1:])
 
-    
+
