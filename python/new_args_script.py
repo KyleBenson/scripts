@@ -3,9 +3,10 @@ from __future__ import print_function
 NEW_SCRIPT_DESCRIPTION = '''Description that will appear when help is printed.'''
 
 # @author: Kyle Benson
-# (c) Kyle Benson 2012
+# (c) Kyle Benson 2016
 
 import argparse
+import logging as log
 #from os.path import isdir
 #from os import listdir
 #from getpass import getpass
@@ -28,6 +29,11 @@ def parse_args(args):
     parser.add_argument('--files', '-f', type=str, nargs='+',
                         help='''files from which to read trace data''')
 
+    # joins logging facility with argparse
+    parser.add_argument('--debug', '-d', type=str, default='info', nargs='?', const='debug',
+                        help=''set debug level for logging facility (default=%(default)s, %(const)s when specified with no arg)'')
+
+
     return parser.parse_args(args)
 
 # Main
@@ -37,4 +43,6 @@ if __name__ == "__main__":
 
     args = parse_args(sys.argv[1:])
 
-
+    # enables logging for all classes
+    log_level = log.getLevelName(args.debug.upper())
+    log.basicConfig(format='%(levelname)s:%(message)s', level=log_level)
