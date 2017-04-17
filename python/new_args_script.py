@@ -28,6 +28,9 @@ def parse_args(args):
                                      #formatter_class=argparse.RawTextHelpFormatter,
                                      #epilog='Text to display at the end of the help print',
                                      #parents=[parent1,...], # add parser args from these ArgumentParsers
+                                     # NOTE: for multiple levels of arg
+                                     # scripts, will have to use add_help=False
+                                     # or may consider using parse_known_args()
                                      )
 
     parser.add_argument('--files', '-f', type=str, nargs='+',
