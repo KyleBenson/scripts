@@ -1,6 +1,9 @@
 // Simple example of using pthreads in C.
 // Adapted from http://cs.gmu.edu/~white/CS571/Examples/Pthread/create.c
 // Downloaded 1/24/2013
+//
+// TO COMPILE:
+// gcc -pthread pthread.c
 
 #include <stdio.h>
 #include <pthread.h> 
