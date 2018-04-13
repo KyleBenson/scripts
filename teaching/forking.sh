@@ -32,5 +32,5 @@ echo "Parent PID: $BASHPID, VARIABLE is $VARIABLE"
 (child) &
 echo "Child process started"
 
-#trap cleanup SIGINT
+trap cleanup SIGINT
 inf_loop
