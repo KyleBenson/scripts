@@ -38,7 +38,7 @@ def parse_args(args):
 
     # joins logging facility with argparse
     parser.add_argument('--debug', '-d', type=str, default='info', nargs='?', const='debug',
-                        help=''set debug level for logging facility (default=%(default)s, %(const)s when specified with no arg)'')
+                        help='''set debug level for logging facility (default=%(default)s, %(const)s when specified with no arg)''')
 
 
     return parser.parse_args(args)
